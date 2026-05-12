@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LVL. 99 HAPPY BIRTHDAY, MY BABY!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #7B2CBF;
+            --light-purple: #9D4EDD;
+            --bg-purple: #F3E5F5;
+            --accent-yellow: #FFD166;
+            --bright-yellow: #FFB703;
+            --dark-text: #240046;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-purple);
+            color: var(--dark-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            font-family: 'Fredoka One', cursive; /* ใช้ฟอนต์มนๆ น่ารักผสมผสาน */
+        }
+
+        /* พลุกระดาษฉลองเมื่อเป่าสำเร็จ */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* กล่องสิทธิ์สไตล์ RPG Game กล่องคู่ผสม */
+        #permission-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(36, 0, 70, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+            padding: 20px;
+        }
+
+        .game-card {
+            background: white;
+            color: var(--dark-text);
+            padding: 35px;
+            border-radius: 24px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            border: 5px double var(--primary-purple);
+        }
+
+        .game-card h2 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            color: var(--primary-purple);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .game-card p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .mix-btn {
+            background-color: var(--primary-purple);
+            color: white;
+            border: 3px solid var(--accent-yellow);
+            padding: 14px 32px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(123, 44, 191, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .mix-btn:hover {
+            background-color: var(--light-purple);
+            transform: translateY(-3px);
+        }
+
+        /* แถบสถานะข้อความเควสเกมล้ำๆ */
+        .status-box {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 8px 20px rgba(123, 44, 191, 0.15);
+            margin-bottom: 25px;
+            font-weight: bold;
+            border: 3px solid var(--light-purple);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1rem;
+        }
+
+        .mic-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #ff4d6d;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.25); opacity: 1; }
+        }
+
+        /* เวทีงานปาร์ตี้หลัก */
+        .stage-area {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-bottom: 30px;
+        }
+
+        /* เค้กชิบะการ์ตูนตรงกลาง */
+        .cake-center {
+            position: relative;
+            width: 240px;
+            height: 280px;
+            z-index: 3;
+        }
+
+        /* เทียนและเปลวไฟไหวสลับ */
+        .candle-box {
+            position: absolute;
+            bottom: 145px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            width: 20px;
+            height: 60px;
+        }
+        .stick {
+            width: 10px;
+            height: 35px;
+            background: linear-gradient(to right, #ffd166, #ffb703);
+            margin: 0 auto;
+            border-radius: 4px;
+            border: 1.5px solid var(--dark-text);
+        }
+        .flame {
+            width: 16px;
+            height: 24px;
+            background: linear-gradient(to bottom, #ff007f, #ffb703);
+            border-radius: 50% 50% 20% 20% / 60% 60% 40% 40%;
+            margin: 0 auto;
+            animation: flicker 0.1s infinite alternate;
+            transform-origin: center bottom;
+            box-shadow: 0 0 15px rgba(255, 183, 3, 0.8);
+        }
+        .flame.flicker-hard {
+            animation: flicker-hard-anim 0.06s infinite alternate;
+            transform: scale(0.85) skewX(12deg);
+        }
+        .flame.extinguished {
+            display: none;
+        }
+
+        /* เอฟเฟกต์ควันลอยละล่อง */
+        .smoke {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 18px;
+            background: rgba(200, 200, 200, 0.7);
+            border-radius: 50%;
+            filter: blur(2px);
+            opacity: 0;
+        }
+        .smoke.active {
+            animation: smoke-rise 1.8s ease-out forwards;
+        }
+
+        @keyframes flicker { 0% { transform: scale(1) rotate(-1deg); } 100% { transform: scale(1.06) rotate(1deg); } }
+        @keyframes flicker-hard-anim { 0% { transform: scale(0.9) rotate(-6deg) translateX(-1px); } 100% { transform: scale(0.7) rotate(6deg) translateX(1px); } }
+        @keyframes smoke-rise {
+            0% { top: -5px; opacity: 0.8; transform: translateX(-50%) scale(1); }
+            50% { top: -25px; opacity: 0.4; transform: translateX(-40%) scale(1.8); }
+            100% { top: -50px; opacity: 0; transform: translateX(-60%) scale(2.5); }
+        }
+
+        /* --- ฝั่งขวา: ตัวละครแฟนและแมวหน้ากวนสไตล์การ์ตูนผสมผสานล้ำๆ --- */
+        .character-duo {
+            position: absolute;
+            right: -10px;
+            bottom: 0;
+            width: 220px;
+            height: 270px;
+            z-index: 4;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        /* ป้ายเวลอัพเลเวล 99 ลอยบนหัว */
+        .lvl-banner {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: #240046;
+            color: #00E676;
+            border: 3px solid #00E676;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .revealed .lvl-banner {
+            transform: translateX(-50%) scale(1);
+            animation: float-jump 1s infinite alternate;
+        }
+
+        @keyframes float-jump { 0% { transform: translateX(-50%) translateY(0); } 100% { transform: translateX(-50%) translateY(-6px); } }
+
+        /* ฝั่งซ้าย: กลุ่มน้องแมว 5 ตัวจากเวอชั่นแรก ปลดล็อคเด้งขึ้นมา */
+        .cats-group {
+            position: absolute;
+            left: -10px;
+            bottom: 0;
+            width: 210px;
+            height: 270px;
+            z-index: 2;
+        }
+        .cat-portrait {
+            position: absolute;
+            width: 75px;
+            height: auto;
+            opacity: 0;
+            transform: scale(0.4) translateY(30px);
+            transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .revealed .cat-portrait {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        .cat-1 { bottom: 0px; left: 0px; transition-delay: 0.2s; }
+        .cat-2 { bottom: 90px; left: 20px; transition-delay: 0.4s; }
+        .cat-3 { bottom: 170px; left: 5px; transition-delay: 0.6s; }
+        .cat-4 { bottom: 45px; left: 100px; transition-delay: 0.8s; }
+        .cat-5 { bottom: 130px; left: 115px; transition-delay: 1s; }
+
+        /* การ์ดข้อความฉลอง HBD */
+        .celebration-text {
+            margin-top: 15px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(25px);
+            transition: all 1s ease;
+            max-width: 90%;
+        }
+        .celebration-text.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .hbd-title {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--primary-purple);
+            text-shadow: -3px -3px 0 var(--accent-yellow), 
+                          3px -3px 0 var(--accent-yellow), 
+                         -3px  3px 0 var(--accent-yellow), 
+                          3px  3px 0 var(--accent-yellow),
+                          0px  6px 12px rgba(0,0,0,0.15);
+            letter-spacing: 1px;
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
+        .hbd-sub {
+            font-size: 1.2rem;
+            color: var(--light-purple);
+            background: white;
+            padding: 10px 24px;
+            border-radius: 50px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        /* การตอบสนองบนมือถือ */
+        @media (max-width: 500px) {
+            .stage-area { transform: scale(0.75); margin-bottom: -50px; height: 340px; }
+            .hbd-title { font-size: 1.9rem; }
+            .hbd-sub { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="permission-overlay">
+        <div class="game-card">
+            <h2>[ QUEST START ]<br>ACTIVATE BIRTHDAY MAGIC</h2>
+            <p>Please grant microphone access to blow out the cake candles and level up your relationship! 🎤🎂</p>
+            <button class="mix-btn" id="start-btn">GRANT PERMISSION & START</button>
+        </div>
+    </div>
+
+    <div class="status-box" id="status-container">
+        <div class="mic-dot"></div>
+        <span id="status-text">SYSTEM: LOADING MIC INTERACTION SYSTEM...</span>
+    </div>
+
+    <div class="stage-area" id="main-party-stage">
+        
+        <div class="cats-group">
+            <div class="cat-portrait cat-1">
+                <svg viewBox="0 0 100 100">
+                    <ellipse cx="50" cy="55" rx="35" ry="30" fill="#2B2B2B" stroke="#240046" stroke-width="2"/>
+                    <path d="M 25 70 C 30 50, 42 48, 50 60 C 58 48, 70 50, 75 70 C 70 83, 30 83, 25 70 Z" fill="#FFF"/>
+                    <polygon points="20,32 12,5 35,26" fill="#2B2B2B" stroke="#240046" stroke-width="2"/>
+                    <polygon points="80,32 88,5 65,26" fill="#2B2B2B" stroke="#240046" stroke-width="2"/>
+                    <ellipse cx="36" cy="46" rx="7" ry="6" fill="#D4D700" stroke="#240046" stroke-width="1.5"/>
+                    <circle cx="36" cy="46" r="3" fill="#000"/>
+                    <ellipse cx="64" cy="46" rx="7" ry="6" fill="#D4D700" stroke="#240046" stroke-width="1.5"/>
+                    <circle cx="64" cy="46" r="3" fill="#000"/>
+                    <polygon points="47,56 53,56 50,60" fill="#FFB3C1"/>
+                    <line x1="22" y1="58" x2="5" y2="56" stroke="#FFF" stroke-width="1.5"/>
+                    <line x1="22" y1="64" x2="3" y2="66" stroke="#FFF" stroke-width="1.5"/>
+                    <line x1="78" y1="58" x2="95" y2="56" stroke="#FFF" stroke-width="1.5"/>
+                    <line x1="78" y1="64" x2="97" y2="66" stroke="#FFF" stroke-width="1.5"/>
+                    <rect x="35" y="78" width="30" height="6" rx="3" fill="#7B2CBF"/>
+                    <circle cx="50" cy="86" r="5" fill="#FFD166" stroke="#240046" stroke-width="1"/>
+                </svg>
+            </div>
+            <div class="cat-portrait cat-2">
+                <svg viewBox="0 0 100 100">
+                    <ellipse cx="50" cy="55" rx="35" ry="30" fill="#FAD2E1" stroke="#240046" stroke-width="2"/>
+                    <polygon points="20,32 10,8 32,25" fill="#FAD2E1" stroke="#240046" stroke-width="2"/>
+                    <polygon points="80,32 90,8 68,25" fill="#FAD2E1" stroke="#240046" stroke-width="2"/>
+                    <circle cx="35" cy="48" r="6" fill="#4A3020"/>
+                    <circle cx="35" cy="46" r="2" fill="#FFF"/>
+                    <circle cx="65" cy="48" r="6" fill="#4A3020"/>
+                    <circle cx="65" cy="46" r="2" fill="#FFF"/>
+                    <ellipse cx="45" cy="60" rx="6" ry="5" fill="#FFF"/>
+                    <ellipse cx="55" cy="60" rx="6" ry="5" fill="#FFF"/>
+                    <polygon points="48,57 52,57 50,60" fill="#E8A598"/>
+                    <rect x="36" y="78" width="28" height="5" rx="2" fill="#900C3F"/>
+                </svg>
+            </div>
+            <div class="cat-portrait cat-3">
+                <svg viewBox="0 0 100 100">
+                    <ellipse cx="50" cy="55" rx="35" ry="30" fill="#9A7B56" stroke="#240046" stroke-width="2"/>
+                    <path d="M 42 26 L 44 38 M 50 25 L 50 35 M 58 26 L 56 38" stroke="#4A3020" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M 17 50 L 30 52 M 17 58 L 28 58" stroke="#4A3020" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M 83 50 L 70 52 M 83 58 L 72 58" stroke="#4A3020" stroke-width="3" stroke-linecap="round"/>
+                    <polygon points="20,32 12,6 34,26" fill="#9A7B56" stroke="#240046" stroke-width="2"/>
+                    <polygon points="80,32 88,6 66,26" fill="#9A7B56" stroke="#240046" stroke-width="2"/>
+                    <ellipse cx="34" cy="48" rx="7" ry="6" fill="#C5A059" stroke="#240046"/>
+                    <circle cx="34" cy="48" r="3" fill="#000"/>
+                    <ellipse cx="66" cy="48" rx="7" ry="6" fill="#C5A059" stroke="#240046"/>
+                    <circle cx="66" cy="48" r="3" fill="#000"/>
+                    <polygon points="48,58 52,58 50,61" fill="#4A3020"/>
+                    <path d="M 45 64 Q 50 67 55 64" fill="none" stroke="#240046" stroke-width="1.5"/>
+                    <rect x="34" y="78" width="32" height="6" rx="2" fill="#0077B6"/>
+                    <circle cx="50" cy="85" r="5" fill="#00B4D8" stroke="#240046" stroke-width="1"/>
+                </svg>
+            </div>
+            <div class="cat-portrait cat-4">
+                <svg viewBox="0 0 100 100">
+                    <ellipse cx="50" cy="55" rx="35" ry="30" fill="#E67E22" stroke="#240046" stroke-width="2"/>
+                    <path d="M 45 25 L 45 35 M 55 25 L 55 35" stroke="#D35400" stroke-width="3"/>
+                    <path d="M 16 52 L 28 54 M 84 52 L 72 54" stroke="#D35400" stroke-width="3"/>
+                    <polygon points="18,34 8,8 32,27" fill="#E67E22" stroke="#240046" stroke-width="2"/>
+                    <polygon points="82,34 92,8 68,27" fill="#E67E22" stroke="#240046" stroke-width="2"/>
+                    <path d="M 28 50 Q 34 44 38 52" fill="none" stroke="#240046" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M 72 50 Q 66 44 62 52" fill="none" stroke="#240046" stroke-width="2.5" stroke-linecap="round"/>
+                    <ellipse cx="50" cy="62" rx="10" ry="8" fill="#FFF"/>
+                    <path d="M 46 62 Q 50 72 54 62 Z" fill="#FF4D6D"/>
+                    <polygon points="48,56 52,56 50,59" fill="#D35400"/>
+                    <rect x="35" y="79" width="30" height="5" rx="2" fill="#1D3557"/>
+                </svg>
+            </div>
+            <div class="cat-portrait cat-5">
+                <svg viewBox="0 0 100 100">
+                    <ellipse cx="50" cy="55" rx="35" ry="30" fill="#BDC3C7" stroke="#240046" stroke-width="2"/>
+                    <path d="M 45 25 L 45 35 M 55 25 L 55 35" stroke="#7F8C8D" stroke-width="3"/>
+                    <path d="M 16 55 L 28 55 M 84 55 L 72 55" stroke="#7F8C8D" stroke-width="3"/>
+                    <polygon points="18,34 8,8 32,27" fill="#BDC3C7" stroke="#240046" stroke-width="2"/>
+                    <polygon points="82,34 92,8 68,27" fill="#BDC3C7" stroke="#240046" stroke-width="2"/>
+                    <circle cx="34" cy="48" r="5" fill="#240046"/>
+                    <path d="M 60 46 Q 66 52 72 46" fill="none" stroke="#240046" stroke-width="2.5" stroke-linecap="round"/>
+                    <circle cx="24" cy="60" r="4" fill="#FF8FA3" opacity="0.6"/>
+                    <circle cx="76" cy="60" r="4" fill="#FF8FA3" opacity="0.6"/>
+                    <polygon points="48,57 52,57 50,60" fill="#7F8C8D"/>
+                    <rect x="35" y="79" width="30" height="5" rx="2" fill="#FFD166"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="cake-center">
+            <div class="candle-box">
+                <div class="flame" id="candle-flame"></div>
+                <div class="smoke" id="candle-smoke"></div>
+                <div class="stick"></div>
+            </div>
+            
+            <svg viewBox="0 0 200 160" width="100%">
+                <polygon points="75,40 65,15 90,30" fill="#E69138" stroke="#240046" stroke-width="2"/>
+                <polygon points="125,40 135,15 110,30" fill="#E69138" stroke="#240046" stroke-width="2"/>
+                <ellipse cx="100" cy="50" rx="35" ry="26" fill="#E69138" stroke="#240046" stroke-width="2"/>
+                <ellipse cx="85" cy="55" rx="14" ry="14" fill="#FFF"/>
+                <ellipse cx="115" cy="55" rx="14" ry="14" fill="#FFF"/>
+                <path d="M 82 48 Q 88 43 92 49" fill="none" stroke="#240046" stroke-width="2.5"/>
+                <path d="M 118 48 Q 112 43 108 49" fill="none" stroke="#240046" stroke-width="2.5"/>
+                <polygon points="96,54 104,54 100,58" fill="#240046"/>
+                <ellipse cx="74" cy="54" rx="5" ry="3" fill="#FF8FA3" opacity="0.7"/>
+                <ellipse cx="126" cy="54" rx="5" ry="3" fill="#FF8FA3" opacity="0.7"/>
+
+                <rect x="35" y="65" width="130" height="55" rx="10" fill="#7B2CBF" stroke="#240046" stroke-width="2.5"/>
+                <path d="M 35 80 Q 45 90 55 80 Q 65 90 75 80 Q 85 90 95 80 Q 105 90 115 80 Q 125 90 135 80 Q 145 90 155 80 Q 165 90 165 80 L 165 65 L 35 65 Z" fill="#FFB703" stroke="#240046" stroke-width="2"/>
+
+                <rect x="15" y="110" width="170" height="50" rx="12" fill="#FFD166" stroke="#240046" stroke-width="2.5"/>
+                <path d="M 15 130 Q 30 142 45 130 Q 60 142 75 130 Q 90 142 105 130 Q 120 142 135 130 Q 150 142 165 130 Q 180 142 185 130 L 185 110 L 15 110 Z" fill="#9D4EDD" stroke="#240046" stroke-width="2"/>
+            </svg>
+        </div>
+
+        <div class="character-duo">
+            <div class="lvl-banner">LVL. 99 BEST FRIENDS!</div>
+            
+            <div style="width: 95px; height: 190px;">
+                <svg viewBox="0 0 40 80" width="100%" height="100%">
+                    <path d="M 8 20 Q 20 2, 32 20 Q 35 45, 33 55 L 7 55 Q 5 45, 8 20 Z" fill="#4E3629"/>
+                    <circle cx="20" cy="22" rx="11" ry="12" fill="#FFDFD3"/>
+                    <circle cx="16" cy="20" r="2" fill="#240046"/>
+                    <circle cx="24" cy="20" r="2" fill="#240046"/>
+                    <path d="M 18 26 Q 20 29 22 26" fill="none" stroke="#240046" stroke-width="1.5"/>
+                    <ellipse cx="11" cy="23" rx="3" ry="2" fill="#FF9E9E"/>
+                    <ellipse cx="29" cy="23" rx="3" ry="2" fill="#FF9E9E"/>
+                    <rect x="11" y="34" width="18" height="16" fill="#FFF" stroke="#240046" stroke-width="1.5"/>
+                    <path d="M 9 50 L 31 50 L 33 70 L 7 70 Z" fill="#1E3A8A"/>
+                    <rect x="14" y="70" width="3" height="7" fill="#FFDFD3"/>
+                    <rect x="23" y="70" width="3" height="7" fill="#FFDFD3"/>
+                    <rect x="12" y="76" width="5" height="3" fill="#000" rx="1"/>
+                    <rect x="23" y="76" width="5" height="3" fill="#000" rx="1"/>
+                </svg>
+            </div>
+
+            <div style="width: 90px; height: 120px; margin-bottom: 5px;">
+                <svg viewBox="0 0 40 50" width="100%" height="100%">
+                    <ellipse cx="21" cy="38" rx="12" ry="11" fill="#FFF" stroke="#240046" stroke-width="1.5"/>
+                    <circle cx="14" cy="46" r="3" fill="#FFF" stroke="#240046"/>
+                    <circle cx="26" cy="46" r="3" fill="#FFF" stroke="#240046"/>
+                    
+                    <rect x="11" y="29" width="20" height="4" fill="#0A369D" rx="2"/>
+                    <circle cx="21" cy="34" r="3.5" fill="#FFD166" stroke="#240046" stroke-width="1"/>
+                    
+                    <g transform="rotate(18, 20, 16)">
+                        <ellipse cx="20" cy="15" rx="14" ry="12" fill="#FFF" stroke="#240046" stroke-width="1.5"/>
+                        <path d="M 6 15 C 6 6, 34 6, 34 15 C 34 11, 6 11, 6 15 Z" fill="#7F8C8D"/>
+                        <rect x="11" y="11" width="3" height="4" fill="#7F8C8D"/>
+                        <rect x="26" y="11" width="3" height="4" fill="#7F8C8D"/>
+                        <polygon points="8,5 2,13 12,7" fill="#7F8C8D" stroke="#240046" stroke-width="1"/>
+                        <polygon points="32,5 38,13 28,7" fill="#7F8C8D" stroke="#240046" stroke-width="1"/>
+                        <circle cx="14" cy="15" r="2.5" fill="#240046"/>
+                        <circle cx="26" cy="15" r="2.5" fill="#240046"/>
+                        <polygon points="19,18 21,18 20,20" fill="#000"/>
+                        <path d="M 18 21 Q 20 23 22 21" fill="none" stroke="#240046" stroke-width="1.5"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="celebration-text" id="hbd-message-banner">
+        <h1 class="hbd-title">HAPPY BIRTHDAY,<br>MY BABY!</h1>
+        <p class="hbd-sub">Wish granted! Level Up with your 5 cute cats! 🐾🎉</p>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('start-btn');
+        const permissionOverlay = document.getElementById('permission-overlay');
+        const statusText = document.getElementById('status-text');
+        const candleFlame = document.getElementById('candle-flame');
+        const candleSmoke = document.getElementById('candle-smoke');
+        const mainPartyStage = document.getElementById('main-party-stage');
+        const hbdMessageBanner = document.getElementById('hbd-message-banner');
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let audioContext;
+        let analyser;
+        let dataArray;
+        let microphone;
+        let isBlownOut = false;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // ระบบพลุสายรุ้งฉลองชัย (Confetti System)
+        let particles = [];
+        const partyColors = ['#7B2CBF', '#9D4EDD', '#FFD166', '#FFB703', '#FF4D6D', '#00F5D4', '#FFF'];
+
+        class PartyParticle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * -canvas.height;
+                this.size = Math.random() * 8 + 6;
+                this.color = partyColors[Math.floor(Math.random() * partyColors.length)];
+                this.speedY = Math.random() * 3 + 3;
+                this.speedX = Math.random() * 2 - 1;
+                this.angle = Math.random() * 360;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.angle += 2;
+                if (this.y > canvas.height) {
+                    this.y = -10;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.angle * Math.PI) / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function initConfetti() {
+            for (let i = 0; i < 110; i++) {
+                particles.push(new PartyParticle());
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (isBlownOut) {
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+            }
+            requestAnimationFrame(animateConfetti);
+        }
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                
+                permissionOverlay.style.opacity = '0';
+                setTimeout(() => permissionOverlay.style.display = 'none', 500);
+                
+                statusText.innerText = "🎤 MIC ACTIVE: Blow hard onto the candle to complete the quest!";
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                monitorVolume();
+            } catch (err) {
+                console.error(err);
+                statusText.innerText = "❌ ERROR: MICROPHONE PERMISSION DENIED!";
+                alert("Please grant mic permission to activate the interactive card elements.");
+            }
+        });
+
+        function monitorVolume() {
+            if (isBlownOut) return;
+
+            analyser.getByteFrequencyData(dataArray);
+            let total = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                total += dataArray[i];
+            }
+            let avg = total / dataArray.length;
+
+            if (avg > 75) {
+                triggerCelebration();
+            } else if (avg > 35) {
+                // เป่าเบาๆ เทียนสั่นไหววูบวาบ
+                candleFlame.className = "flame flicker-hard";
+                statusText.innerText = "💨 DETECTING WIND... BLOW HARDER TO EXTINQUISH!";
+            } else {
+                candleFlame.className = "flame";
+                statusText.innerText = "🎤 STANDBY: Blow hard directly into the mic to make your wish come true.";
+            }
+
+            requestAnimationFrame(monitorVolume);
+        }
+
+        function triggerCelebration() {
+            isBlownOut = true;
+            
+            candleFlame.className = "flame extinguished";
+            candleSmoke.className = "smoke active";
+            statusText.innerText = "✨ QUEST COMPLETED: HAPPY BIRTHDAY, WISH GRANTED! 🎉";
+            
+            document.getElementById('status-container').style.backgroundColor = "var(--accent-yellow)";
+            document.getElementById('status-container').style.borderColor = "var(--primary-purple)";
+
+            // ปลดล็อคแก๊งน้องแมว 5 ตัว และ ป้ายเวลอัพลอยขึ้นมาอย่างสวยงาม
+            mainPartyStage.classList.add('revealed');
+            hbdMessageBanner.classList.add('show');
+
+            initConfetti();
+            animateConfetti();
+        }
+    </script>
+</body>
+</html>
